@@ -59,4 +59,10 @@ class JsonStudentRepository implements StudentRepository
     {
         return array_values($this->students);
     }
+
+    public function delete(StudentId $id): void
+    {
+        unset($this->students[$id->value()]);
+        $this->persist();
+    }
 }

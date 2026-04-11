@@ -65,4 +65,10 @@ class JsonSubjectRepository implements SubjectRepository
     {
         return array_values($this->subjects);
     }
+
+    public function delete(SubjectId $id): void
+    {
+        unset($this->subjects[$id->value()]);
+        $this->persist();
+    }
 }

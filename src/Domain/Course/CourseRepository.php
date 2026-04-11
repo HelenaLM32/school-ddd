@@ -8,4 +8,5 @@ interface CourseRepository
     public function find(CourseId $id): ?Course;
     public function save(Course $course): void;
     public function findAll(): array;
+    public function delete(CourseId $id): void;
 }
