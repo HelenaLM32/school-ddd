@@ -10,17 +10,19 @@ use App\Domain\Subject\SubjectId;
 use App\Domain\Teacher\TeacherId;
 use App\Infrastructure\Http\Request;
 use App\Infrastructure\Http\Response;
-use App\Infrastructure\Persistence\Json\JsonSubjectRepository;
-use App\Infrastructure\Persistence\Json\JsonTeacherRepository;
+use App\Infrastructure\Persistence\Doctrine\DoctrineSubjectRepository;
+use App\Infrastructure\Persistence\Doctrine\DoctrineTeacherRepository;
 
 class ApiSubjectController
 {
-    private JsonSubjectRepository $repository;
+    private DoctrineSubjectRepository $repository;
     private Response $response;
 
     public function __construct(private Request $request)
     {
-        $this->repository = new JsonSubjectRepository();
+        $entityManager = require __DIR__ . '/../../../../bootstrap.php';
+
+        $this->repository = new DoctrineSubjectRepository($entityManager);
         $this->response   = new Response();
     }
 
@@ -34,14 +36,12 @@ class ApiSubjectController
         ];
     }
 
-    /** GET /api/subjects */
     public function index(): void
     {
         $subjects = array_map([$this, 'subjectToArray'], $this->repository->findAll());
         $this->response->json(['data' => $subjects], 200)->send();
     }
 
-    /** GET /api/subjects/{id} */
     public function show(string $id): void
     {
         $subject = $this->repository->find(new SubjectId($id));
@@ -54,7 +54,6 @@ class ApiSubjectController
         $this->response->json(['data' => $this->subjectToArray($subject)], 200)->send();
     }
 
-    /** POST /api/subjects */
     public function store(): void
     {
         $data = json_decode(file_get_contents('php://input'), true) ?? [];
@@ -72,7 +71,6 @@ class ApiSubjectController
         $this->response->json(['data' => $this->subjectToArray($subject)], 201)->send();
     }
 
-    /** PUT /api/subjects/{id} */
     public function update(string $id): void
     {
         $subject = $this->repository->find(new SubjectId($id));
@@ -92,7 +90,6 @@ class ApiSubjectController
         $this->response->json(['data' => $this->subjectToArray($updated)], 200)->send();
     }
 
-    /** DELETE /api/subjects/{id} */
     public function destroy(string $id): void
     {
         $subject = $this->repository->find(new SubjectId($id));
@@ -106,7 +103,6 @@ class ApiSubjectController
         $this->response->json(['message' => 'Subject deleted successfully'], 200)->send();
     }
 
-    /** POST /api/subjects/{id}/assign-teacher */
     public function assignTeacher(string $id): void
     {
         $subject = $this->repository->find(new SubjectId($id));
@@ -123,8 +119,9 @@ class ApiSubjectController
             return;
         }
 
-        // Validate the teacher exists
-        $teacherRepo = new JsonTeacherRepository();
+        $entityManager = require __DIR__ . '/../../../../bootstrap.php';
+        $teacherRepo = new DoctrineTeacherRepository($entityManager);
+
         $teacher = $teacherRepo->find(new TeacherId($data['teacherId']));
         if (!$teacher) {
             $this->response->json(['error' => 'Teacher not found'], 404)->send();

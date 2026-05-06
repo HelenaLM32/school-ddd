@@ -7,20 +7,21 @@ use App\Application\Teacher\CreateTeacherHandler;
 use App\Domain\Teacher\TeacherId;
 use App\Infrastructure\Http\Request;
 use App\Infrastructure\Http\Response;
-use App\Infrastructure\Persistence\Json\JsonTeacherRepository;
+use App\Infrastructure\Persistence\Doctrine\DoctrineTeacherRepository;
 
 class ApiTeacherController
 {
-    private JsonTeacherRepository $repository;
+    private DoctrineTeacherRepository $repository;
     private Response $response;
 
     public function __construct(private Request $request)
     {
-        $this->repository = new JsonTeacherRepository();
+        $entityManager = require __DIR__ . '/../../../../bootstrap.php';
+
+        $this->repository = new DoctrineTeacherRepository($entityManager);
         $this->response   = new Response();
     }
 
-    /** GET /api/teachers */
     public function index(): void
     {
         $teachers = array_map(
@@ -31,7 +32,6 @@ class ApiTeacherController
         $this->response->json(['data' => $teachers], 200)->send();
     }
 
-    /** GET /api/teachers/{id} */
     public function show(string $id): void
     {
         $teacher = $this->repository->find(new TeacherId($id));
@@ -50,7 +50,6 @@ class ApiTeacherController
         ], 200)->send();
     }
 
-    /** POST /api/teachers */
     public function store(): void
     {
         $data = json_decode(file_get_contents('php://input'), true) ?? [];
@@ -74,7 +73,6 @@ class ApiTeacherController
         ], 201)->send();
     }
 
-    /** PUT /api/teachers/{id} */
     public function update(string $id): void
     {
         $teacher = $this->repository->find(new TeacherId($id));
@@ -88,7 +86,6 @@ class ApiTeacherController
         $name  = $data['name']  ?? $teacher->name();
         $email = $data['email'] ?? $teacher->email();
 
-        // Re-create with updated values (immutable domain entity)
         $handler = new CreateTeacherHandler($this->repository);
         $handler->handle(new CreateTeacherCommand($id, $name, $email));
 
@@ -102,7 +99,6 @@ class ApiTeacherController
         ], 200)->send();
     }
 
-    /** DELETE /api/teachers/{id} */
     public function destroy(string $id): void
     {
         $teacher = $this->repository->find(new TeacherId($id));

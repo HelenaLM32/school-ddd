@@ -7,16 +7,18 @@ use App\Application\Course\CreateCourseHandler;
 use App\Domain\Course\CourseId;
 use App\Infrastructure\Http\Request;
 use App\Infrastructure\Http\Response;
-use App\Infrastructure\Persistence\Json\JsonCourseRepository;
+use App\Infrastructure\Persistence\Doctrine\DoctrineCourseRepository;
 
 class ApiCourseController
 {
-    private JsonCourseRepository $repository;
+    private DoctrineCourseRepository $repository;
     private Response $response;
 
     public function __construct(private Request $request)
     {
-        $this->repository = new JsonCourseRepository();
+        $entityManager = require __DIR__ . '/../../../../bootstrap.php';
+
+        $this->repository = new DoctrineCourseRepository($entityManager);
         $this->response   = new Response();
     }
 
@@ -29,14 +31,12 @@ class ApiCourseController
         ];
     }
 
-    /** GET /api/courses */
     public function index(): void
     {
         $courses = array_map([$this, 'courseToArray'], $this->repository->findAll());
         $this->response->json(['data' => $courses], 200)->send();
     }
 
-    /** GET /api/courses/{id} */
     public function show(string $id): void
     {
         $course = $this->repository->find(new CourseId($id));
@@ -49,7 +49,6 @@ class ApiCourseController
         $this->response->json(['data' => $this->courseToArray($course)], 200)->send();
     }
 
-    /** POST /api/courses */
     public function store(): void
     {
         $data = json_decode(file_get_contents('php://input'), true) ?? [];
@@ -67,7 +66,6 @@ class ApiCourseController
         $this->response->json(['data' => $this->courseToArray($course)], 201)->send();
     }
 
-    /** PUT /api/courses/{id} */
     public function update(string $id): void
     {
         $course = $this->repository->find(new CourseId($id));
@@ -87,7 +85,6 @@ class ApiCourseController
         $this->response->json(['data' => $this->courseToArray($updated)], 200)->send();
     }
 
-    /** DELETE /api/courses/{id} */
     public function destroy(string $id): void
     {
         $course = $this->repository->find(new CourseId($id));

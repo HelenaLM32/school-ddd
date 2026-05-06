@@ -7,20 +7,21 @@ use App\Application\Student\CreateStudentHandler;
 use App\Domain\Student\StudentId;
 use App\Infrastructure\Http\Request;
 use App\Infrastructure\Http\Response;
-use App\Infrastructure\Persistence\Json\JsonStudentRepository;
+use App\Infrastructure\Persistence\Doctrine\DoctrineStudentRepository;
 
 class ApiStudentController
 {
-    private JsonStudentRepository $repository;
+    private DoctrineStudentRepository $repository;
     private Response $response;
 
     public function __construct(private Request $request)
     {
-        $this->repository = new JsonStudentRepository();
+        $entityManager = require __DIR__ . '/../../../../bootstrap.php';
+
+        $this->repository = new DoctrineStudentRepository($entityManager);
         $this->response   = new Response();
     }
 
-    /** GET /api/students */
     public function index(): void
     {
         $students = array_map(
@@ -31,7 +32,6 @@ class ApiStudentController
         $this->response->json(['data' => $students], 200)->send();
     }
 
-    /** GET /api/students/{id} */
     public function show(string $id): void
     {
         $student = $this->repository->find(new StudentId($id));
@@ -50,7 +50,6 @@ class ApiStudentController
         ], 200)->send();
     }
 
-    /** POST /api/students */
     public function store(): void
     {
         $data = json_decode(file_get_contents('php://input'), true) ?? [];
@@ -74,7 +73,6 @@ class ApiStudentController
         ], 201)->send();
     }
 
-    /** PUT /api/students/{id} */
     public function update(string $id): void
     {
         $student = $this->repository->find(new StudentId($id));
@@ -101,7 +99,6 @@ class ApiStudentController
         ], 200)->send();
     }
 
-    /** DELETE /api/students/{id} */
     public function destroy(string $id): void
     {
         $student = $this->repository->find(new StudentId($id));
