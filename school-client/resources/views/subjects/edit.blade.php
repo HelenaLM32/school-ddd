@@ -1,0 +1,69 @@
+@extends('layouts.app')
+@section('title', 'Edit Subject')
+
+@section('content')
+<div class="d-flex align-items-center gap-2 mb-4">
+    <a href="{{ route('subjects.index') }}" class="btn btn-sm btn-outline-secondary">← Back</a>
+    <h4 class="mb-0">Edit Subject</h4>
+</div>
+
+<div class="row g-3" style="max-width:900px">
+
+    {{-- Edit name --}}
+    <div class="col-md-6">
+        <div class="card p-4 h-100">
+            <h6 class="mb-3">Subject info</h6>
+            <form method="POST" action="{{ route('subjects.update', $subject['id']) }}">
+                @csrf @method('PUT')
+
+                <div class="mb-3">
+                    <label class="form-label fw-medium text-muted small">Subject ID</label>
+                    <input type="text" class="form-control bg-light" value="{{ $subject['id'] }}" disabled>
+                </div>
+
+                <div class="mb-4">
+                    <label for="name" class="form-label fw-medium">Subject Name</label>
+                    <input type="text" class="form-control @error('name') is-invalid @enderror"
+                           id="name" name="name" value="{{ old('name', $subject['name']) }}" required>
+                    @error('name')<div class="invalid-feedback">{{ $message }}</div>@enderror
+                </div>
+
+                <button type="submit" class="btn btn-dark">Update</button>
+            </form>
+        </div>
+    </div>
+
+    {{-- Assign teacher --}}
+    <div class="col-md-6">
+        <div class="card p-4 h-100">
+            <h6 class="mb-3">Assign teacher</h6>
+
+            @if(!empty($subject['teacher']))
+                <div class="alert alert-light border mb-3 py-2">
+                    Current: <strong>{{ $subject['teacher']['name'] ?? $subject['teacher_id'] ?? '—' }}</strong>
+                </div>
+            @endif
+
+            <form method="POST" action="{{ route('subjects.assign-teacher', $subject['id']) }}">
+                @csrf
+
+                <div class="mb-4">
+                    <label for="teacher_id" class="form-label fw-medium">Select Teacher</label>
+                    <select class="form-select" id="teacher_id" name="teacher_id" required>
+                        <option value="">— Choose a teacher —</option>
+                        @foreach($teachers as $teacher)
+                            <option value="{{ $teacher['id'] }}"
+                                {{ (!empty($subject['teacher_id']) && $subject['teacher_id'] === $teacher['id']) ? 'selected' : '' }}>
+                                {{ $teacher['name'] }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+
+                <button type="submit" class="btn btn-dark">Assign Teacher</button>
+            </form>
+        </div>
+    </div>
+
+</div>
+@endsection
