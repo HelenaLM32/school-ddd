@@ -138,10 +138,14 @@ class ApiService
         return $response->json('data') ?? [];
     }
 
-    /** Para respuestas de item único: devuelve el array dentro de 'data' o null */
     private function handleItem(Response $response): ?array
     {
         if ($response->failed()) {
+            // Opcional: loguear en Laravel para debug
+            \Illuminate\Support\Facades\Log::warning('API error', [
+                'status' => $response->status(),
+                'body'   => $response->body(),
+            ]);
             return null;
         }
         return $response->json('data') ?? null;

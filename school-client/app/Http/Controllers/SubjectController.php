@@ -5,19 +5,18 @@ namespace App\Http\Controllers;
 use App\Services\ApiService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
-use Illuminate\View\View;
 
 class SubjectController extends Controller
 {
     public function __construct(private ApiService $api) {}
 
-    public function index(): View
+    public function index()
     {
         $subjects = $this->api->getSubjects();
         return view('subjects.index', compact('subjects'));
     }
 
-    public function create(): View
+    public function create()
     {
         return view('subjects.create');
     }
@@ -38,24 +37,24 @@ class SubjectController extends Controller
         return redirect()->route('subjects.index')->with('success', 'Subject created successfully.');
     }
 
-    public function show(string $id): View
+    public function show(string $id)
     {
         $subject = $this->api->getSubject($id);
 
-        if (! $subject) {
-            abort(404, 'Subject not found.');
+        if (!$subject) {
+            return redirect()->route('subjects.index')->with('error', 'Subject not found.');
         }
 
         return view('subjects.show', compact('subject'));
     }
 
-    public function edit(string $id): View
+    public function edit(string $id)
     {
         $subject  = $this->api->getSubject($id);
         $teachers = $this->api->getTeachers();
 
-        if (! $subject) {
-            abort(404, 'Subject not found.');
+        if (!$subject) {
+            return redirect()->route('subjects.index')->with('error', 'Subject not found.');
         }
 
         return view('subjects.edit', compact('subject', 'teachers'));
@@ -67,7 +66,11 @@ class SubjectController extends Controller
             'name' => 'required|string|max:255',
         ]);
 
-        $this->api->updateSubject($id, $validated);
+        $result = $this->api->updateSubject($id, $validated);
+
+        if (empty($result)) {
+            return back()->with('error', 'Could not update subject. Check the API is running.')->withInput();
+        }
 
         return redirect()->route('subjects.index')->with('success', 'Subject updated successfully.');
     }
@@ -84,7 +87,13 @@ class SubjectController extends Controller
             'teacher_id' => 'required|string',
         ]);
 
-        $this->api->assignTeacherToSubject($id, $validated['teacher_id']);
+        $result = $this->api->assignTeacherToSubject($id, $validated['teacher_id']);
+
+        if (empty($result)) {
+            return back()
+                ->with('error', 'Could not assign teacher. Check the teacher ID and that the API is running.')
+                ->withInput();
+        }
 
         return redirect()->route('subjects.index')->with('success', 'Teacher assigned to subject.');
     }

@@ -19,7 +19,7 @@
     <div class="d-flex gap-2 mt-3">
         <a href="{{ route('teachers.edit', $teacher['id']) }}" class="btn btn-dark">Edit</a>
         <form method="POST" action="{{ route('teachers.destroy', $teacher['id']) }}"
-              onsubmit="return confirm('Delete this teacher?')">
+            onsubmit="return confirm('Delete this teacher?')">
             @csrf @method('DELETE')
             <button class="btn btn-outline-danger">Delete</button>
         </form>
