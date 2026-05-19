@@ -33,6 +33,10 @@ final class Course
         return $this->name;
     }
 
+    public function rename(string $name): void
+    {
+        $this->name = $name;
+    }
     public function create(): void
     {
         if (!$this->available) {

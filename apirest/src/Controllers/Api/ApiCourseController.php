@@ -76,10 +76,11 @@ class ApiCourseController
         }
 
         $data = json_decode(file_get_contents('php://input'), true) ?? [];
-        $name = $data['name'] ?? $course->name();
 
-        $handler = new CreateCourseHandler($this->repository);
-        $handler->handle(new CreateCourseCommand($id, $name));
+        if (isset($data['name'])) {
+            $course->rename($data['name']);
+        }
+        $this->repository->save($course);
 
         $updated = $this->repository->find(new CourseId($id));
         $this->response->json(['data' => $this->courseToArray($updated)], 200)->send();
