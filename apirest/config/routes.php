@@ -1,5 +1,7 @@
 <?php
 
+use App\Controllers\HomeController;
+
 use App\Controllers\Api\ApiTeacherController;
 use App\Controllers\Api\ApiStudentController;
 use App\Controllers\Api\ApiSubjectController;
@@ -8,6 +10,7 @@ use App\Controllers\Api\ApiCourseController;
 return [
 
     // ── API REST ─────────────────────────────────────────────────────────────
+    ['method' => 'GET', 'path' => '/', 'handler' => [HomeController::class, 'index']],
 
     // API Teachers
     ['method' => 'GET',    'path' => '/api/teachers',         'handler' => [ApiTeacherController::class, 'index']],
